@@ -6,3 +6,4 @@ target
 .settings
 web-app
 /docs
+grails-database-session.i*
