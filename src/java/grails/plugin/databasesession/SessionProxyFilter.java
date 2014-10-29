@@ -24,12 +24,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
  */
 public class SessionProxyFilter extends OncePerRequestFilter {
 
-	protected static final String COOKIE_NAME = "SessionProxyFilter_SessionId";
-	protected static final String COOKIE_PATH = "/";
-	protected static final String REQUEST_COOKIE_KEY = "SessionProxyFilter_REQUEST_COOKIE";
-
+    protected static final String COOKIE_PATH = "/";
 	private static final ThreadLocal<HttpServletRequest> REQUEST_HOLDER = new ThreadLocal<HttpServletRequest>();
-	private static final ThreadLocal<HttpServletResponse> RESPONSE_HOLDER = new ThreadLocal<HttpServletResponse>();
+    private static final ThreadLocal<HttpServletResponse> RESPONSE_HOLDER = new ThreadLocal<HttpServletResponse>();
+
+    private String cookieName = "SessionProxyFilter_SessionId";
+    private String requestCookieKey = "SessionProxyFilter_REQUEST_COOKIE";
 
 	private Persister persister;
 
@@ -121,7 +121,7 @@ public class SessionProxyFilter extends OncePerRequestFilter {
 
 	protected Cookie getCookie(HttpServletRequest request) {
 		// no cookie, but if we're in the same request as when it was set it will be here
-		Cookie newCookie = (Cookie)request.getAttribute(REQUEST_COOKIE_KEY);
+		Cookie newCookie = (Cookie)request.getAttribute(requestCookieKey);
 		if (newCookie != null) {
 			return newCookie;
 		}
@@ -129,7 +129,7 @@ public class SessionProxyFilter extends OncePerRequestFilter {
 		Cookie[] cookies = request.getCookies();
 		if (cookies != null) {
 			for (Cookie cookie : cookies) {
-				if (COOKIE_NAME.equals(cookie.getName())) {
+				if (cookieName.equals(cookie.getName())) {
 					return cookie;
 				}
 			}
@@ -153,11 +153,11 @@ public class SessionProxyFilter extends OncePerRequestFilter {
 		}
 		cookie = newCookie(sessionId, request);
 		response.addCookie(cookie);
-		request.setAttribute(REQUEST_COOKIE_KEY, cookie);
+		request.setAttribute(requestCookieKey, cookie);
 	}
 
 	protected Cookie newCookie(String sessionId, HttpServletRequest request) {
-		Cookie cookie = new Cookie(COOKIE_NAME, sessionId);
+		Cookie cookie = new Cookie(cookieName, sessionId);
 		cookie.setDomain(request.getServerName()); // TODO needs config option
 		cookie.setPath(COOKIE_PATH);
 		cookie.setSecure(request.isSecure());
@@ -203,6 +203,30 @@ public class SessionProxyFilter extends OncePerRequestFilter {
 	public static HttpServletResponse getResponse() {
 		return RESPONSE_HOLDER.get();
 	}
+
+    public String getCookieName() {
+        return cookieName;
+    }
+
+    /**
+     * Dependency injection for the cookie bane.
+     * @param cookieName the cookie name
+     */
+    public void setCookieName(String cookieName) {
+        this.cookieName = cookieName;
+    }
+
+    public String getRequestCookieKey() {
+        return requestCookieKey;
+    }
+
+    /**
+     * Dependency injection for the key used in the cookie.
+     * @param requestCookieKey the name of the key
+     */
+    public void setRequestCookieKey(String requestCookieKey) {
+        this.requestCookieKey = requestCookieKey;
+    }
 
 	@Override
 	public void afterPropertiesSet() throws ServletException {
