@@ -25,6 +25,9 @@ class SessionFilters {
 				catch (InvalidatedSessionException ise) {
 					// ignored
 				}
+				catch(Exception f) {
+					log.error("Something went wrong getting ${request.forwardURI}: ${f.message}")
+				}
 			}
 		}
 	}
